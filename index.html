@@ -1,0 +1,205 @@
+<!doctype html>
+<html>
+<head>
+    <title>canvas</title>
+    <meta charset='utf-8' />
+</head>
+<body>
+    <div class='parent'>
+        <div id='stage'>
+            <canvas id='ground'>A</canvas>
+            <canvas id='car_orange' class='offO'>B</canvas>
+            <canvas id='car_purple' class='offP'>C</canvas>
+            <canvas id='fail' class='offF'>D</canvas>
+        </div>
+    </div>
+</body>
+<script>
+    //creating variables
+    var element = document.getElementById('stage');
+    var canvas = document.getElementById('ground');
+    var canvasO = document.getElementById('car_orange');
+    var canvasP = document.getElementById('car_purple');
+    var canvasF = document.getElementById('fail');
+    var ctx = canvas.getContext('2d');
+    var ctxO = canvasO.getContext('2d');
+    var ctxP = canvasP.getContext('2d');
+    var ctxF = canvasF.getContext('2d');
+    canvas.width = '500';
+    canvas.height = '500';
+    canvasO.width = canvas.width;
+    canvasO.height = canvas.height;
+    canvasP.width = canvas.width;
+    canvasP.height = canvas.height;
+    canvasF.width = canvas.width;
+    canvasF.height = canvas.height;
+    var ar_purple = [];
+    var ar_orange = [];
+    var gxy = 0;
+    var rxy = 0;
+    var offP = class {};
+    var offO = class {};
+    var offF = class {};
+    var imgF = new Image();
+    imgF.src = 'fail_400.png';
+    var imgG = new Image();
+    imgG.src = 'green_50.png';
+    var imgR = new Image();
+    imgR.src = 'red_50.png';
+    var imgP = new Image();
+    imgP.src = 'purple_50.png';
+    var imgO = new Image();
+    imgO.src = 'orange_50.png';
+    //creating a template
+    function arc(x, y, radius){
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.ball = function(color) {
+            this.color = color;
+            ctxO.beginPath();
+            ctxO.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+            ctxO.closePath();
+            ctxO.fillStyle = this.color;
+            ctxO.fill();
+        };
+        this.road_purple = function(color) {
+            this.color = color;
+            ctxP.beginPath();
+            ctxP.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+            ctxP.closePath();
+            ctxP.fillStyle = this.color;
+            ctxP.fill();
+        }; 
+    }
+    //drawing the land
+    function draw() {
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        console.log(element.width)
+        ctx.fillStyle = 'rgb(75,75,75)';
+        ctx.fillRect(0,0, canvas.width, canvas.height);
+        ctx.fillStyle = 'rgb(255, 255, 255)';
+        for(var i=0;i<5;i++) {
+            let x = canvas.width*0.04;
+            let y = canvas.height*0.03;
+            let w = canvas.width*0.02;
+            let h = canvas.height*0.38;
+            ctx.fillRect(x+(canvas.width*0.225*i), y, w, h)
+        }
+        for(var j=0;j<5;j++) {
+            let x = canvas.width*0.02;
+            let y = canvas.height*0.4;
+            let w = canvas.width*0.06;
+            let h = canvas.height*0.02;
+            ctx.fillRect(x+(canvas.width*0.225*j), y, w, h)
+        }
+        ctx.font = canvas.height*0.13 + 'px sans-serif';
+        ctx.fillStyle = 'orange'
+        ctx.fillText("P", canvas.width*0.35, canvas.height*0.33);
+        ctx.fillStyle = 'purple'
+        ctx.fillText("P", canvas.width*0.58, canvas.height*0.33);
+        imgR.addEventListener("load", function() {
+            ctx.drawImage(imgR, (canvas.width*0.08), (canvas.height*0.2),(canvas.width*0.17),(canvas.height*0.17));
+        });
+        imgG.addEventListener("load", function() {
+            ctx.drawImage(imgG, (canvas.width*0.75), (canvas.height*0.2),(canvas.width*0.17),(canvas.height*0.17));
+        });
+        imgP.addEventListener("load", function() {
+            ctxF.drawImage(imgP, (canvas.width*0.08), (canvas.height*0.8),(canvas.width*0.17),(canvas.height*0.17));
+        });
+        imgO.addEventListener("load", function() {
+            ctxF.drawImage(imgO, (canvas.width*0.75), (canvas.height*0.8),(canvas.width*0.17),(canvas.height*0.17));
+        });
+    }
+    //draw car_purples and check for collisions
+    function obg() {
+        if (offF.name == 'on') {
+            return false;
+        }
+        if (offO.name == 'on' && offP.name == 'on') {
+            ctxF.clearRect(0,0, canvas.width, canvas.height);
+            if (gxy < ar_orange.length) {
+                ctxO.clearRect(0,0, canvas.width, canvas.height);
+                ctxO.drawImage(imgO, ar_orange[gxy][0]-canvas.width*0.08, ar_orange[gxy][1]-canvas.height*0.08,canvas.width*0.17,canvas.height*0.17);
+                gxy = gxy+1;
+            }
+            if (rxy < ar_purple.length) {
+                ctxP.clearRect(0,0, canvas.width, canvas.height);
+                ctxP.drawImage(imgP, ar_purple[rxy][0]-canvas.width*0.08, ar_purple[rxy][1]-canvas.height*0.08,canvas.width*0.17,canvas.height*0.17);
+                rxy = rxy+1;
+            }
+            if (ar_orange[gxy][1] <= canvas.height*0.28) {
+                gxy = gxy-1;
+            }
+            if (ar_purple[rxy][1] <= canvas.height*0.28) {
+                rxy = rxy-1;
+            }
+            if (ar_orange[gxy][1]-ar_purple[rxy][1] <= canvas.height*0.12 &&
+                ar_orange[gxy][1]-ar_purple[rxy][1] >= -canvas.height*0.12 &&
+                ar_orange[gxy][0]-ar_purple[rxy][0] <= canvas.width*0.075 &&
+                ar_orange[gxy][0]-ar_purple[rxy][0] >= -canvas.width*0.075 ||
+                ar_orange[gxy][0] < canvas.width*0.25 && ar_orange[gxy][1] < canvas.height*0.4 ||
+                ar_orange[gxy][0] > canvas.width*0.75 && ar_orange[gxy][1] < canvas.height*0.4 ||
+                ar_purple[rxy][0] < canvas.width*0.25 && ar_purple[rxy][1] < canvas.height*0.4 ||
+                ar_purple[rxy][0] > canvas.width*0.75 && ar_purple[rxy][1] < canvas.height*0.4) {
+                console.log(ar_orange[gxy][1]-ar_purple[rxy][1])
+                ctxF.drawImage(imgF,(canvas.width*0.1),(canvas.height*0.3),(canvas.width*0.8),(canvas.height*0.4));
+                offF = class on {};
+            }
+            
+        }
+    }
+    //creating a car_orange and a yard of car_purples
+    canvasF.addEventListener('click', function(e) {
+        if (e.clientX > canvas.width*0.75 && e.clientY > canvas.height*0.8) {
+            fail.onmousemove = function(e) {
+                let ball = new arc(0, 0, canvas.width*0.01);
+                ball.x = e.clientX;
+                ball.y = e.clientY;
+                ball.ball('orange');
+                ar_orange.push([e.clientX, e.clientY])
+            };
+        } else if (e.clientX < canvas.width*0.25 && e.clientY > canvas.height*0.8) {
+            fail.onmousemove = function(e) {
+                let ball = new arc(0, 0, canvas.width*0.01);
+                ball.x = e.clientX;
+                ball.y = e.clientY;
+                ball.road_purple('purple');
+                ar_purple.push([e.clientX, e.clientY])
+            };
+        } else if (e.clientX > canvas.width*0.3 && e.clientY < canvas.height*0.4 && e.clientX < canvas.width*0.7) {
+            fail.onmousemove = null;
+            if (ar_purple.length !== 0) {
+                offP = class on {};
+            }
+            if (ar_orange.length !== 0) {
+                offO = class on {};
+            }
+            //ctxP.rotate((Math.PI / 180) * 2);
+            setInterval(obg, 200);
+        }
+    });
+    draw();
+</script>
+<style>
+    .parent {
+        display: flex;
+        justify-content: flex-start;
+        height: 100%;
+    }
+    #stage {
+        width:500px;
+        height: 500px;
+        position: relative;
+        border: 2px solid black;
+        cursor: url('cYKBCVU (4)_25.png'), auto;
+    }
+    canvas {
+        position: absolute;
+    }
+    #ground { z-index: 1; }
+    #car_orange { z-index: 2; }
+    #car_purple { z-index: 3; }
+    #fail { z-index: 4; }
+</style>
+</html>
